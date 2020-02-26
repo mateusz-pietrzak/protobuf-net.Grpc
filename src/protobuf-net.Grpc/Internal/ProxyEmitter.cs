@@ -153,6 +153,12 @@ namespace ProtoBuf.Grpc.Internal
                 {
                     bool isService = binderConfig.Binder.IsServiceContract(iType, out var serviceName);
 
+                    // If not service then try to use TService for serviceName
+                    if (!isService)
+                    {
+                        isService = binderConfig.Binder.IsServiceContract(typeof(TService), out serviceName);
+                    }
+
                     // : TService
                     type.AddInterfaceImplementation(iType);
 

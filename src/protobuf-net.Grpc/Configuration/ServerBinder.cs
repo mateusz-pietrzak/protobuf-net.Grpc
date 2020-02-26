@@ -43,9 +43,26 @@ namespace ProtoBuf.Grpc.Configuration
                 ? new HashSet<Type> { serviceType }
                 : ContractOperation.ExpandInterfaces(serviceType);
 
+            var immediateServices = serviceContracts
+                        .Except(serviceContracts.SelectMany(t => t.GetInterfaces()))
+                        .Where(t => binderConfiguration.Binder.IsServiceContract(t, out _));
+
             foreach (var serviceContract in serviceContracts)
             {
-                if (!binderConfiguration.Binder.IsServiceContract(serviceContract, out serviceName)) continue;
+                // If not service then try to use TService for serviceName
+                if (!binderConfiguration.Binder.IsServiceContract(serviceContract, out serviceName))
+                {
+                    var parentService = immediateServices.FirstOrDefault(s => serviceContract.IsAssignableFrom(s));
+
+                    if (parentService is null)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        binderConfiguration.Binder.IsServiceContract(parentService, out serviceName);
+                    }
+                }
 
                 int svcOpCount = 0;
                 foreach (var op in ContractOperation.FindOperations(binderConfiguration, serviceContract))
@@ -155,7 +172,7 @@ namespace ProtoBuf.Grpc.Configuration
                     mapArgs[0] = _service;
                     lambdaArgs.CopyTo(mapArgs, 1);
                 }
-                
+
                 var body = _invoker.Invoke(Method, mapArgs);
                 var lambda = Expression.Lambda<TDelegate>(body, lambdaArgs);
 

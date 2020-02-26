@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\protobuf-net.Grpc\protobuf-net.Grpc.csproj" />
     <PackageReference Include="Grpc.AspNetCore.Server" Version="$(GrpcDotNetVersion)" />
   </ItemGroup>
